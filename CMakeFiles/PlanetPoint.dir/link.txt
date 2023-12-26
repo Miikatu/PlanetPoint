@@ -1,0 +1,1 @@
+/usr/bin/c++   -Wall -Werror -std=c++14 -pthread -g   CMakeFiles/PlanetPoint.dir/src/Main.cpp.o  -o PlanetPoint  -lsfml-system -lsfml-window -lsfml-graphics 

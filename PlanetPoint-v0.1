@@ -1,0 +1,306 @@
+#include <SFML/Graphics.hpp>
+#include <SFML/Graphics.hpp>
+#include <forward_list>
+#include <iostream>
+#include <list>
+#include <vector>
+#include <deque>
+#include <cmath>
+#include <pthread.h>
+
+using std::cout;
+using std::endl;
+
+class Tile //Class for that tiles implement
+{
+    public:
+    Tile(sf::Color color);
+    Tile(sf::Color color, sf::Vector2f position);
+    sf::RectangleShape shape;
+    sf::Color surface; 
+    int id;
+    private:
+    const float size{10.f};     
+};
+
+ Tile::Tile(sf::Color color){
+    std::cout<<"Tile initialized"<<"\n";
+    surface = color;
+    shape.setFillColor(surface);
+    shape.setSize(sf::Vector2f(10,10));
+}
+Tile::Tile(sf::Color color, sf::Vector2f position){
+    std::cout<<"Tile initialized"<<"\n";
+    surface = color;
+    shape.setFillColor(surface);
+    shape.setSize(sf::Vector2f(10,10));
+    shape.setPosition(position);
+}
+
+class World //Class for World info
+{
+public:
+    int tileSizeX{10};
+    int tileSizeY{10};
+    int worldSizeX{1000};
+    int worldSizeY{1000};
+    std::vector<std::vector<Tile>> grid;
+    World();
+    void fill();
+    void render(); 
+    void printSize();
+    std::vector<std::vector<Tile>> getGrid();
+};
+
+World::World(){
+    
+}
+
+void World::fill(){
+    //Add first row to map
+    //
+    std::vector<Tile> row;
+    
+    for(int j =0; j<worldSizeY;j++){
+        for(int i = 0; i< worldSizeX;i++){ 
+            Tile tile(sf::Color::Yellow);
+            tile.shape.setPosition(sf::Vector2f{(float)i*(float)tileSizeX,(float)tileSizeY*j});
+            row.push_back(tile);
+        } 
+    }
+    
+    grid.push_back(row);
+    
+    //Add second row
+    // 
+    /*
+    std::vector<Tile> row2;
+    for(int i = 0; i< worldSizeX;i++){
+        Tile tile(sf::Color::Green);
+        tile.shape.setPosition(sf::Vector2f{(float)i*(float)tileSizeX,(float)tileSizeY*2});
+        row2.push_back(tile);
+    } 
+    grid.push_back(row2); */
+}
+void World::printSize(){
+    //cout<<"row size: "<<row.size()<<"\n";
+    cout << "grid size: "<< grid.size()<<"\n";
+    for(std::vector<Tile> row: grid){
+        for(Tile tile : row){
+        cout<<"Tile"<<"\n";
+        }
+    } 
+}
+std::vector<std::vector<Tile>> World::getGrid(){
+
+    return grid;
+}
+
+
+void fillPlanet(){
+    
+}
+  
+class Game 
+{   
+public:
+    Game();
+    void run();
+    void directionOnKeyPressed(char input);
+    void move(sf::Time deltaTime);
+    void move();
+    sf::Time deltaTime;
+    World world;
+    
+private:
+    sf::Vector2f tileSize{10.f,10.f};
+    char input;
+    int windowWidth{715};
+    int windowHeight{715};
+    sf::RenderWindow window;
+    
+    enum directionKey{ DOWN,UP,LEFT,RIGHT};
+    
+    //Grid
+    //
+    std::forward_list<sf::RectangleShape> verticalLines;
+    //std::list<sf::RectangleShape> verticalLines;
+    std::list<sf::RectangleShape> horizontalLines;
+    sf::RectangleShape border;
+    sf::Sprite background;
+    sf::Texture texture;
+    //Apple container
+    //
+    std::vector<sf::RectangleShape> apples;
+    void eventListener();
+    void render();
+    void render(sf::Clock gameClock);
+    void collisionCheck();
+    void boundCheck();
+};
+
+//Game Constructor, with initializer
+//
+Game::Game(): window(sf::VideoMode(windowWidth,windowHeight),"Play Snake .02"){
+    std::cout<<"Construction done!"<< std::endl;
+    //Window border
+    //
+    border.setSize(sf::Vector2f(windowWidth,windowHeight));
+    border.setFillColor(sf::Color::Blue);
+    border.setPosition(0,0);
+    
+    //Add lines to grid)
+    sf::RectangleShape lineV(sf::Vector2f(5,windowHeight));
+    for(int i{0};i<windowWidth;i+=55){
+        lineV.setPosition(i,0);
+        verticalLines.push_front(lineV);
+    }
+    sf::RectangleShape lineH(sf::Vector2f(windowWidth,5));
+    for(int i{0};i<windowHeight;i+=55){
+        lineH.setPosition(0,i);
+        horizontalLines.push_front(lineH);
+    }
+
+    //Add background Texture
+    
+    //Create object of world
+    //
+    //Fill World Map with shapes
+    world.fill();
+
+    //Add apples to map
+    //
+    for(int i=0 ;i <100;i++){
+        sf::RectangleShape apple;
+        int randomX=rand()%13+1;//Random int between 1-13
+        int randomY=rand()%13+1;//Random int between 1-13
+        //apple.setRadius(10);
+        //apple.setOrigin(apple.getRadius(),apple.getRadius());
+        apple.setPosition(30+randomX*55,30+randomY*55);        
+        apple.setFillColor(sf::Color::Blue);
+        apple.setSize(tileSize);
+        apples.emplace_back( apple);
+    }
+    
+}//Game Constructor ends
+
+void Game::eventListener(){
+    sf::Event event;
+        //while pending events
+        while (window.pollEvent(event)) 
+        {
+            switch(event.type)
+            {
+                case sf::Event::Closed:
+                    window.close();
+                    break;
+            
+                case sf::Event::Resized:
+                    windowHeight=window.getSize().y;
+                    windowWidth=window.getSize().x;
+                    break;
+                
+                case sf::Event::KeyPressed:
+                    if(event.key.code==sf::Keyboard::Escape)
+                        window.close();
+                    break;
+                        
+                default:
+                    break;
+            }
+            
+            if (event.type == sf::Event::Closed)
+                window.close();
+        }//Program exited  
+}
+
+//Game Render
+//
+void Game::render(){
+    window.clear();
+    
+    //Draw background
+    //
+    window.draw(background);
+   
+    //Draw tiles
+    //
+    
+    //world.printSize();
+    //std::vector<std::vector<Tile>> brig{world.getGrid()};
+    
+    cout<<"world grid size:" << world.grid.size()<<"\n";
+    for(std::vector<Tile> row : world.grid ){
+       std::cout<<"row found"<<", its size is "<< row.size()<<"\n";
+       for(Tile tile : row){
+           window.draw(tile.shape);
+        }
+    }
+    
+    //Draw Apples
+    //Program exited
+
+    std::for_each(apples.begin(),apples.end(),[&](auto& apple){
+        window.draw(apple);
+    });
+    
+    window.display();
+}
+
+
+
+void Game::run(){
+    
+    std::cout<<"Running game inside a Thread"<< std::endl;
+    sf::Clock deltaClock;
+    sf::Clock gameClock;
+    
+    int framesPerSecond{15};
+    int skipTicks{125};
+    sf::Int32 sleepTime{0};
+    //bool game_is_running = true;
+    //GameLoop
+    //
+    float nextGameTick= deltaClock.getElapsedTime().asMilliseconds();
+    
+    while(window.isOpen()){
+       
+        eventListener();
+    
+           
+        gameClock.restart();
+       
+        render();
+        
+        nextGameTick+=skipTicks;
+        sleepTime=nextGameTick-deltaClock.getElapsedTime().asMilliseconds();
+        if(sleepTime>=0){
+            //sleepTime;
+            sf::sleep(sf::milliseconds(sleepTime));
+            //sleep(sleepTime);
+        }
+        else {
+            //myöhässä
+        }
+        // Calculate deltaTime
+        //deltaTime = deltaClock.restart(); 
+        
+        framesPerSecond++;
+    }
+}
+
+
+int main()
+{   
+    //Create instance of Game
+    
+    Game game;
+    sf::Thread gameThread(&Game::run,&game);
+    gameThread.launch();
+    
+    //Example of threading a class --> sf::Thread thread(&MyClass::func, &object);
+
+    return 0;
+
+}
+

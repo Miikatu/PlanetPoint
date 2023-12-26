@@ -1,0 +1,38 @@
+* Canvas Documentation * 
+** Documentation about the world and how its generated **
+
+
+*** Predeterminen layer count approach ***
+World conists of layers [0...3]
+
+where:
+
+* 0:  Base layer (yellow)
+* 1:  Flora layer (green)
+* 2:  Mud layer (light brown)
+* 3:  Dirt layer (dark brown)
+
+About layers:
+
+* Base Layer
+** Base Color of game window
+** Base layer tiles are untouched by the player and doesn't have any flora in them
+** Each other layer is drawn on top of Base layer
+
+* Flora layer
+** Flora layer are the basic resource in PlanetPoint
+** Flora can be interacted upon by clicking flora tiles
+** Each click clears the tile of flora revealing the base layer behind it
+
+* Mud layer
+** Mud can be tought of as the layer right underneath the base layer
+*** In the game engine however Mud is drawn on top of base layer (like other layers)
+** Mud layer is needed for planning of structures
+** they might be usefull for other purposes aswell
+
+* Dirt layer
+** depest layer in PlanetPoint
+** Dirt cannot be digged
+** Some dirt might have valueble resources in them
+
+

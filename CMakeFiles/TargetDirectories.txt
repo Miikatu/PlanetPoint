@@ -1,0 +1,3 @@
+/home/miika/Documents/miika/hobby/dev/PlanetPoint/CMakeFiles/rebuild_cache.dir
+/home/miika/Documents/miika/hobby/dev/PlanetPoint/CMakeFiles/edit_cache.dir
+/home/miika/Documents/miika/hobby/dev/PlanetPoint/CMakeFiles/PlanetPoint.dir
